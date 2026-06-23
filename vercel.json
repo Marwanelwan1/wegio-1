@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Wegio – GDS Flight Assistant | Wego Travel Agency</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root{--bg:#0B0F1A;--surf:#111827;--panel:#161D2E;--bdr:#1E293B;--acc:#00D4AA;--a2:#3B82F6;--red:#EF4444;--txt:#E2E8F0;--mut:#64748B;--code:#0D1117;--sabre:#FF6B35;--gal:#7C3AED;--adm:#F59E0B;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--acc),var(--a2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#000}
+.logo-name{font-size:17px;font-weight:700;color:var(--acc);letter-spacing:1px}
+.logo-sub{font-size:10px;color:var(--mut)}
+.hright{display:flex;align-items:center;gap:8px}
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.bs{background:rgba(255,107,53,.15);color:var(--sabre);border:1px solid rgba(255,107,53,.3)}
+.bg2{background:rgba(124,58,237,.15);color:#A78BFA;border:1px solid rgba(124,58,237,.3)}
+.ba{background:rgba(0,212,170,.1);color:var(--acc);border:1px solid rgba(0,212,170,.25)}
+.learn-btn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:var(--adm);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:background .15s}
+.learn-btn:hover{background:rgba(245,158,11,.22)}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:224px;background:var(--panel);border-right:1px solid var(--bdr);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar::-webkit-scrollbar{width:3px}.sidebar::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+.sbs{padding:12px 10px 6px}
+.sbl{font-size:9.5px;font-weight:700;color:var(--mut);letter-spacing:1.5px;text-transform:uppercase;padding:0 4px 7px}
+.qb{display:block;width:100%;text-align:left;background:none;border:none;color:var(--txt);padding:7px 9px;border-radius:7px;font-size:12px;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:background .15s,color .15s;margin-bottom:1px;line-height:1.35}
+.qb:hover{background:var(--bdr);color:var(--acc)}
+.qi{font-size:13px;margin-right:5px;opacity:.7}
+.dvd{height:1px;background:var(--bdr);margin:6px 10px}
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.kbanner{display:none;background:rgba(0,212,170,.07);border:1px solid rgba(0,212,170,.18);border-radius:8px;padding:7px 14px;font-size:11.5px;color:var(--acc);margin:8px 26px 0;align-items:center;gap:7px;flex-shrink:0}
+.kbanner.show{display:flex}
+.kdot{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:pls 1.5s infinite}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+#messages{flex:1;overflow-y:auto;padding:20px 26px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+#messages::-webkit-scrollbar{width:4px}
+#messages::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:4px}
+.welcome{background:linear-gradient(135deg,rgba(0,212,170,.07),rgba(59,130,246,.07));border:1px solid rgba(0,212,170,.2);border-radius:14px;padding:22px 26px;max-width:720px}
+.welcome h2{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:5px}
+.welcome p{font-size:13px;color:var(--mut);line-height:1.6;margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--surf);border:1px solid var(--bdr);border-radius:7px;padding:5px 11px;font-size:12px;color:var(--txt);cursor:pointer;transition:border-color .15s,color .15s,background .15s;font-family:'Space Grotesk',sans-serif}
+.chip:hover{border-color:var(--acc);color:var(--acc);background:rgba(0,212,170,.05)}
+.msg{display:flex;gap:10px;max-width:780px;animation:fu .22s ease}
+@keyframes fu{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.av{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;font-weight:700}
+.av-ai{background:linear-gradient(135deg,var(--acc),var(--a2));color:#000;font-size:12px}
+.av-u{background:var(--bdr)}
+.bubble{padding:11px 15px;border-radius:13px;font-size:13.5px;line-height:1.65;max-width:660px}
+.bai{background:var(--panel);border:1px solid var(--bdr);border-top-left-radius:3px}
+.bu{background:rgba(0,212,170,.12);border:1px solid rgba(0,212,170,.25);border-top-right-radius:3px}
+.bai code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--code);padding:1px 5px;border-radius:3px;color:var(--acc)}
+.cb{background:var(--code);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:8px;padding:12px 40px 12px 14px;margin:8px 0;font-family:'JetBrains Mono',monospace;font-size:12.5px;white-space:pre-wrap;word-break:break-all;line-height:1.7;position:relative}
+.cb.sabre{border-left-color:var(--sabre)}.cb.gal{border-left-color:var(--gal)}
+.cbl{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;opacity:.65}
+.cb.sabre .cbl{color:var(--sabre)}.cb.gal .cbl{color:#A78BFA}.cb:not(.sabre):not(.gal) .cbl{color:var(--acc)}
+.cpbtn{position:absolute;top:8px;right:8px;background:var(--bdr);border:none;color:var(--mut);padding:2px 7px;border-radius:4px;font-size:10px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:color .15s}
+.cpbtn:hover{color:var(--acc)}
+.cmtc{color:var(--mut)}
+.noteb{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:7px;padding:9px 13px;font-size:12px;color:#FDE68A;margin:8px 0;line-height:1.5}
+.noteb::before{content:'⚠ ';font-weight:700}
+.shdr{font-size:12.5px;font-weight:700;color:var(--acc);margin:12px 0 5px;padding-bottom:4px;border-bottom:1px solid rgba(0,212,170,.15)}
+.tind{display:flex;gap:4px;align-items:center;padding:10px 14px}
+.dot{width:6px;height:6px;background:var(--acc);border-radius:50%;animation:bnc 1.2s infinite;opacity:.7}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bnc{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+.ibar{padding:12px 26px 16px;background:var(--surf);border-top:1px solid var(--bdr);flex-shrink:0}
+.irow{display:flex;gap:8px;align-items:flex-end;background:var(--panel);border:1px solid var(--bdr);border-radius:12px;padding:9px 12px;transition:border-color .2s}
+.irow:focus-within{border-color:rgba(0,212,170,.4)}
+#userInput{flex:1;background:none;border:none;outline:none;color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:13.5px;resize:none;max-height:110px;min-height:22px;line-height:1.5}
+#userInput::placeholder{color:var(--mut)}
+#sendBtn{background:var(--acc);border:none;width:36px;height:36px;border-radius:9px;cursor:pointer;color:#000;font-size:16px;display:flex;align-items:center;justify-content:center;transition:opacity .15s,transform .1s;flex-shrink:0}
+#sendBtn:hover{opacity:.85}#sendBtn:active{transform:scale(.95)}#sendBtn:disabled{opacity:.3;cursor:not-allowed}
+.hint{font-size:10.5px;color:var(--mut);text-align:center;margin-top:6px}
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);align-items:center;justify-content:center}
+.overlay.active{display:flex}
+.modal{background:var(--surf);border:1px solid var(--bdr);border-radius:18px;width:660px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;animation:min .2s ease}
+@keyframes min{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mhdr{padding:16px 20px 13px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.mhl{display:flex;align-items:center;gap:10px}
+.mhico{width:32px;height:32px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.mhdr h3{font-size:15px;font-weight:700;color:var(--adm)}
+.mhdr p{font-size:10.5px;color:var(--mut);margin-top:1px}
+.mclose{background:none;border:none;color:var(--mut);font-size:20px;cursor:pointer;padding:4px;border-radius:5px;line-height:1}
+.mclose:hover{color:var(--txt);background:var(--bdr)}
+#adminLogin{padding:28px 26px}
+.li2{font-size:36px;text-align:center;margin-bottom:14px}
+.lt{text-align:center;font-size:17px;font-weight:700;margin-bottom:5px}
+.ls{text-align:center;font-size:12.5px;color:var(--mut);margin-bottom:24px}
+.fla{font-size:11px;font-weight:700;color:var(--mut);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
+.fi{width:100%;background:var(--panel);border:1px solid var(--bdr);border-radius:9px;padding:10px 13px;color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:13.5px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:rgba(245,158,11,.5)}.fi::placeholder{color:var(--mut)}
+.lbtn{width:100%;margin-top:16px;padding:11px;background:var(--adm);border:none;border-radius:9px;color:#000;font-size:13.5px;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer}
+.lbtn:hover{opacity:.88}
+.lerr{margin-top:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:7px;padding:9px 13px;font-size:12.5px;color:#FCA5A5;text-align:center;display:none}
+#adminPanel{display:none;flex-direction:column;flex:1;overflow:hidden}
+.atabs{display:flex;border-bottom:1px solid var(--bdr);padding:0 18px;flex-shrink:0}
+.atab{padding:11px 15px;font-size:12.5px;font-weight:600;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:'Space Grotesk',sans-serif;background:none;border-top:none;border-left:none;border-right:none}
+.atab.active{color:var(--adm);border-bottom-color:var(--adm)}
+.acnt{flex:1;overflow-y:auto;padding:18px 22px}
+.acnt::-webkit-scrollbar{width:3px}.acnt::-webkit-scrollbar-thumb{background:var(--bdr)}
+.tip{background:rgba(0,212,170,.06);border:1px solid rgba(0,212,170,.2);border-radius:9px;padding:13px 15px;margin-bottom:16px;font-size:12.5px;line-height:1.6}
+.tip strong{color:var(--acc)}
+.tip2{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:9px;padding:13px 15px;margin-bottom:16px;font-size:12.5px;line-height:1.6}
+.tip2 strong{color:var(--a2)}
+.qtbox{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:9px;padding:14px 15px;margin-bottom:16px}
+.qtlbl{font-size:12px;font-weight:700;color:var(--a2);margin-bottom:10px}
+.frow{display:flex;gap:10px;margin-bottom:13px}
+.frow .fg{flex:1}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.fsel,.fti,.fta,.qtin{width:100%;background:var(--panel);border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:12.5px;outline:none;transition:border-color .2s}
+.fsel:focus,.fti:focus,.fta:focus,.qtin:focus{border-color:rgba(245,158,11,.5)}
+.fsel option{background:var(--panel)}
+.fta{font-family:'JetBrains Mono',monospace;min-height:160px;resize:vertical;line-height:1.65}
+.fta::placeholder,.qtin::placeholder{color:var(--mut);font-family:'Space Grotesk',sans-serif}
+.qtin{margin-bottom:8px}
+.abtn{border:none;border-radius:8px;font-size:12.5px;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer;padding:10px 18px;transition:opacity .15s}
+.abtn:hover{opacity:.85}
+.abtn-gold{background:var(--adm);color:#000}
+.abtn-blue{background:var(--a2);color:#fff;padding:8px 15px;font-size:12px}
+.toast{border-radius:7px;padding:9px 13px;font-size:12.5px;display:none;margin-top:10px}
+.toast.ok{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#86EFAC}
+.toast.er{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#FCA5A5}
+.toast.show{display:block}
+.dz{border:2px dashed var(--bdr);border-radius:12px;padding:30px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:14px}
+.dz:hover,.dz.drag{border-color:var(--a2);background:rgba(59,130,246,.05)}
+.dz-icon{font-size:34px;margin-bottom:10px}
+.dz-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.dz-sub{font-size:12px;color:var(--mut);margin-bottom:8px}
+.dz-types{font-size:10px;color:var(--mut);font-family:'JetBrains Mono',monospace;background:var(--panel);border:1px solid var(--bdr);border-radius:6px;padding:4px 10px;display:inline-block}
+.flist{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.fitem{background:var(--panel);border:1px solid var(--bdr);border-radius:8px;padding:10px 13px;display:flex;align-items:center;gap:10px}
+.fitem-ico{font-size:20px;flex-shrink:0}
+.fitem-info{flex:1;min-width:0}
+.fitem-name{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fitem-size{font-size:11px;color:var(--mut)}
+.fitem-rm{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#FCA5A5;padding:3px 8px;border-radius:5px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;flex-shrink:0}
+.fitem-rm:hover{background:rgba(239,68,68,.22)}
+.fst{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.fst.proc{background:rgba(245,158,11,.15);color:var(--adm)}
+.fst.done{background:rgba(34,197,94,.15);color:#86EFAC}
+.fst.err{background:rgba(239,68,68,.15);color:#FCA5A5}
+.pbar{height:3px;background:var(--bdr);border-radius:3px;margin-top:6px;overflow:hidden}
+.pfill{height:100%;background:var(--acc);border-radius:3px;transition:width .3s;width:0}
+.sbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.spill{background:var(--panel);border:1px solid var(--bdr);border-radius:7px;padding:6px 12px;font-size:11.5px;color:var(--mut);display:flex;align-items:center;gap:5px}
+.spill span{font-weight:700;color:var(--adm);font-size:13px}
+.elist{display:flex;flex-direction:column;gap:9px}
+.ecard{background:var(--panel);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px}
+.etop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:8px}
+.etitle{font-size:12.5px;font-weight:700;flex:1}
+.ecat{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(245,158,11,.12);color:var(--adm);border:1px solid rgba(245,158,11,.25);white-space:nowrap;text-transform:uppercase}
+.eprev{font-size:11.5px;color:var(--mut);line-height:1.5;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.efoot{display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+.edate{font-size:10.5px;color:var(--mut)}
+.edel{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#FCA5A5;padding:3px 9px;border-radius:5px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+.edel:hover{background:rgba(239,68,68,.22)}
+.empty{text-align:center;padding:36px 20px;color:var(--mut)}
+.empty-i{font-size:34px;margin-bottom:10px}
+.empty p{font-size:12.5px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">W</div>
+    <div>
+      <div class="logo-name">WEGIO</div>
+      <div class="logo-sub">Wego Travel Agency · GDS Flight Assistant</div>
+    </div>
+  </div>
+  <div class="hright">
+    <span class="badge bs">Sabre Red</span>
+    <span class="badge bg2">Galileo</span>
+    <span class="badge ba">✦ AI</span>
+    <button class="learn-btn" id="learnBtn">🧠 Learn Mode</button>
+  </div>
+</header>
+
+<div class="main">
+  <aside class="sidebar">
+    <div class="sbs"><div class="sbl">Availability</div>
+      <button class="qb" data-q="How do I search flight availability in Sabre and Galileo?"><span class="qi">✈</span>Search Availability</button>
+      <button class="qb" data-q="How do I display a seat map in Sabre and Galileo?"><span class="qi">💺</span>Seat Map</button>
+      <button class="qb" data-q="How do I display flight schedule in Sabre and Galileo?"><span class="qi">📅</span>Flight Schedule</button>
+      <button class="qb" data-q="How do I display flight information and equipment in Sabre and Galileo?"><span class="qi">ℹ</span>Flight Info</button>
+    </div>
+    <div class="dvd"></div>
+    <div class="sbs"><div class="sbl">PNR / Booking</div>
+      <button class="qb" data-q="Show me the complete step by step to build a full PNR in Sabre and Galileo"><span class="qi">📋</span>Build Full PNR</button>
+      <button class="qb" data-q="How do I add passenger names adult child infant in Sabre and Galileo?"><span class="qi">👤</span>Add Passenger</button>
+      <button class="qb" data-q="How do I sell a flight segment in Sabre and Galileo?"><span class="qi">🎟</span>Sell Segment</button>
+      <button class="qb" data-q="How do I add phone and email contact to PNR in Sabre and Galileo?"><span class="qi">📞</span>Add Contact</button>
+      <button class="qb" data-q="How do I set ticketing time limit TTL in Sabre and Galileo?"><span class="qi">⏱</span>Ticketing Limit</button>
+      <button class="qb" data-q="How do I end transaction and retrieve PNR in Sabre and Galileo?"><span class="qi">💾</span>End and Retrieve</button>
+      <button class="qb" data-q="How do I retrieve a PNR by locator or name in Sabre and Galileo?"><span class="qi">🔍</span>Retrieve PNR</button>
+      <button class="qb" data-q="How do I divide or split a PNR in Sabre and Galileo?"><span class="qi">✂</span>Divide PNR</button>
+    </div>
+    <div class="dvd"></div>
+    <div class="sbs"><div class="sbl">Ticketing</div>
+      <button class="qb" data-q="How do I price a PNR and store fare in Sabre and Galileo?"><span class="qi">💲</span>Price and Store Fare</button>
+      <button class="qb" data-q="How do I check fare rules in Sabre and Galileo?"><span class="qi">📖</span>Fare Rules</button>
+      <button class="qb" data-q="How do I issue an e-ticket in Sabre and Galileo?"><span class="qi">🎫</span>Issue Ticket</button>
+      <button class="qb" data-q="How do I void a ticket in Sabre and Galileo?"><span class="qi">❌</span>Void Ticket</button>
+      <button class="qb" data-q="How do I refund a ticket in Sabre and Galileo?"><span class="qi">↩</span>Refund Ticket</button>
+      <button class="qb" data-q="How do I reissue or exchange a ticket in Sabre and Galileo?"><span class="qi">🔄</span>Reissue and Exchange</button>
+      <button class="qb" data-q="How do I process an involuntary reissue due to schedule change in Sabre and Galileo?"><span class="qi">⚡</span>Involuntary Reissue</button>
+    </div>
+    <div class="dvd"></div>
+    <div class="sbs"><div class="sbl">Special Services</div>
+      <button class="qb" data-q="How do I add SSR wheelchair WCHR WCHC WCHS in Sabre and Galileo?"><span class="qi">♿</span>Wheelchair SSR</button>
+      <button class="qb" data-q="What are all meal SSR codes and how to add them in Sabre and Galileo?"><span class="qi">🍽</span>Meal Request</button>
+      <button class="qb" data-q="How do I add DOCS passport DOCA DOCO SSR in Sabre and Galileo?"><span class="qi">🛂</span>DOCS Passport</button>
+      <button class="qb" data-q="How do I add OSI other service information in Sabre and Galileo?"><span class="qi">📝</span>OSI Remarks</button>
+      <button class="qb" data-q="How do I add frequent flyer number FQTV in Sabre and Galileo?"><span class="qi">⭐</span>Frequent Flyer</button>
+      <button class="qb" data-q="How do I request a specific seat in Sabre and Galileo?"><span class="qi">💺</span>Seat Request</button>
+    </div>
+    <div class="dvd"></div>
+    <div class="sbs"><div class="sbl">Operations</div>
+      <button class="qb" data-q="How do I manage queues in Sabre and Galileo?"><span class="qi">📬</span>Queue Management</button>
+      <button class="qb" data-q="How do I cancel a segment in Sabre and Galileo?"><span class="qi">🗑</span>Cancel Segment</button>
+      <button class="qb" data-q="How do I cancel a full PNR in Sabre and Galileo?"><span class="qi">❌</span>Cancel PNR</button>
+      <button class="qb" data-q="How do I add remarks to PNR in Sabre and Galileo?"><span class="qi">💬</span>Remarks</button>
+      <button class="qb" data-q="How do I encode or decode airport airline city codes in Sabre and Galileo?"><span class="qi">🔡</span>Encode Decode</button>
+      <button class="qb" data-q="How do I handle EMD electronic miscellaneous documents in Sabre and Galileo?"><span class="qi">📄</span>EMD</button>
+    </div>
+  </aside>
+
+  <div class="chat-wrap">
+    <div id="kbanner" class="kbanner"><div class="kdot"></div><span id="kbannerTxt"></span></div>
+    <div id="messages">
+      <div class="welcome">
+        <h2>✈ Hello! I'm Wegio</h2>
+        <p>Your GDS flight assistant for <strong>Wego Travel Agency</strong>. Expert in <span style="color:var(--sabre);font-weight:600">Sabre Red 360</span> and <span style="color:#A78BFA;font-weight:600">Galileo Travelport</span>. Ask me anything — I give exact commands for both systems. I also correct wrong commands and learn from everything you teach me.</p>
+        <div class="chips">
+          <button class="chip" data-q="Show me the complete PNR workflow from availability to ticket issuance in Sabre and Galileo">📋 Full PNR Workflow</button>
+          <button class="chip" data-q="How to search availability from CAI to DXB on 20AUG in Sabre and Galileo">✈ CAI-DXB Availability</button>
+          <button class="chip" data-q="How to price store fare and issue ticket in Sabre and Galileo">🎫 Price and Issue Ticket</button>
+          <button class="chip" data-q="Show me all meal SSR codes for Sabre and Galileo">🍽 All Meal Codes</button>
+          <button class="chip" data-q="How to add DOCS passport for Egyptian passenger on EK in Sabre and Galileo">🛂 Passport DOCS</button>
+          <button class="chip" data-q="How to void a ticket and what are the time rules in Sabre and Galileo">❌ Void Ticket Rules</button>
+        </div>
+      </div>
+    </div>
+    <div class="ibar">
+      <div class="irow">
+        <textarea id="userInput" rows="1" placeholder="Ask any GDS flight command, workflow or procedure for Sabre or Galileo…"></textarea>
+        <button id="sendBtn">➤</button>
+      </div>
+      <p class="hint">Enter to send · Shift+Enter for new line · Sabre Red 360 and Galileo Travelport</p>
+    </div>
+  </div>
+</div>
+
+<!-- LEARN MODE MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="mhdr">
+      <div class="mhl">
+        <div class="mhico">🧠</div>
+        <div><h3>Wegio Learn Mode</h3><p>Upload files and teach Wegio — used instantly in every answer</p></div>
+      </div>
+      <button class="mclose" id="mcloseBtn">✕</button>
+    </div>
+
+    <div id="adminLogin">
+      <div class="li2">🔐</div>
+      <div class="lt">Admin Access Required</div>
+      <div class="ls">Enter the password to open Learn Mode</div>
+      <div class="fg" style="margin:0 0 4px">
+        <div class="fla">PASSWORD</div>
+        <input type="password" class="fi" id="pwInput" placeholder="Enter password…">
+      </div>
+      <button class="lbtn" id="loginBtn">🔓 Open Learn Mode</button>
+      <div class="lerr" id="loginErr">❌ Wrong password. Try again.</div>
+    </div>
+
+    <div id="adminPanel">
+      <div class="atabs">
+        <button class="atab active" data-tab="learn">🧠 Teach Wegio</button>
+        <button class="atab" data-tab="upload">📎 Upload Files</button>
+        <button class="atab" data-tab="saved">📚 Saved (<span id="entryCount">0</span>)</button>
+      </div>
+
+      <div id="tabLearn" class="acnt">
+        <div class="qtbox">
+          <div class="qtlbl">⚡ Quick Teach — type anything naturally and Wegio learns it immediately</div>
+          <textarea class="qtin" id="quickInput" rows="3" placeholder="Examples:&#10;For EgyptAir always add OSI MS VIP for business class&#10;Wego uses queue 7 for all ticketing&#10;MS allows free date change within 24h for flex fares"></textarea>
+          <button class="abtn abtn-blue" id="quickTeachBtn">⚡ Teach This Now</button>
+          <div class="toast" id="qtToast"></div>
+        </div>
+        <div class="tip">
+          <strong>📌 How it works:</strong> Add any GDS commands, airline rules, Wego procedures or workflows. Wegio uses everything you add immediately in all answers. You can write naturally or paste raw commands — both work perfectly. <strong>Wegio also learns from your chat conversation automatically.</strong>
+        </div>
+        <div class="frow">
+          <div class="fg"><div class="fla">CATEGORY</div>
+            <select class="fsel" id="dataCategory">
+              <option>Sabre Commands</option><option>Galileo Commands</option><option>Both GDS</option>
+              <option>Ticketing and Fares</option><option>PNR Workflow</option><option>SSR and Special Services</option>
+              <option>Airline Policy</option><option>Wego Procedures</option><option>Refunds and Voids</option>
+              <option>Groups</option><option>Other</option>
+            </select>
+          </div>
+          <div class="fg"><div class="fla">TITLE</div>
+            <input type="text" class="fti" id="dataTitle" placeholder="e.g. EgyptAir group policy…">
+          </div>
+        </div>
+        <div class="fg"><div class="fla">KNOWLEDGE TO ADD</div>
+          <textarea class="fta" id="dataContent" placeholder="Write or paste any GDS commands, procedures, policies, rules…&#10;&#10;Wegio will understand and use everything you add here in all answers."></textarea>
+        </div>
+        <button class="abtn abtn-gold" id="saveEntryBtn">💾 Save to Wegio's Brain</button>
+        <div class="toast" id="saveToast"></div>
+      </div>
+
+      <div id="tabUpload" class="acnt" style="display:none">
+        <div class="tip2">
+          <strong>📎 Upload Documents — Wegio reads and learns from them automatically</strong><br>
+          Supported: PDF · Excel (.xlsx / .xls) · Word (.docx) · CSV · Text (.txt)<br>
+          All content is extracted and saved to Wegio's brain. Use it any time after uploading.
+        </div>
+        <div class="dz" id="dropzone">
+          <div class="dz-icon">📂</div>
+          <div class="dz-title">Drag and Drop files here</div>
+          <div class="dz-sub">or click to browse</div>
+          <div class="dz-types">PDF · XLSX · XLS · DOCX · CSV · TXT</div>
+          <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt" multiple style="display:none">
+        </div>
+        <div class="flist" id="fileList"></div>
+        <div id="procWrap" style="display:none;margin-bottom:14px">
+          <button class="abtn abtn-gold" id="processFilesBtn">🧠 Extract and Save to Wegio's Brain</button>
+        </div>
+        <div class="toast" id="uploadToast"></div>
+        <div id="uploadedDocs" style="margin-top:10px"></div>
+      </div>
+
+      <div id="tabSaved" class="acnt" style="display:none">
+        <div class="sbar" id="statsBar"></div>
+        <div class="elist" id="entriesList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PW  = 'Wego123@gds';
+const API = '/api/chat';
+
+const BASE = `You are Wegio, the official GDS AI flight assistant for Wego Travel Agency in Cairo, Egypt.
+You are an EXPERT in Sabre Red 360 (1S) and Galileo Travelport (1G).
+You handle FLIGHT commands ONLY.
+
+CRITICAL RULES:
+1. Always give commands for BOTH Sabre AND Galileo unless asked for one only
+2. If the user types a WRONG command, correct it immediately and show the right one
+3. Use ALL custom knowledge provided in the system prompt — it is highest priority
+4. Learn from the conversation — apply any corrections immediately
+5. Be precise, professional, helpful
+
+FORMAT ALWAYS:
+[SABRE] before Sabre commands block
+[GALILEO] before Galileo commands block
+Use arrow to explain: 1A20AUGCAIDXB → search availability CAI to DXB
+Use numbered steps for workflows
+Add NOTE: for important warnings
+
+=== AVAILABILITY ===
+[SABRE]
+  1A20AUGCAIDXB      → availability CAI-DXB 20Aug all classes
+  1A20AUGCAIDXB/EK   → filter EK only
+  1A20AUGCAIDXB-0800 → after 08:00
+  AN20AUGCAIDXB      → neutral all airlines
+  1A*                → next page
+
+[GALILEO]
+  A20AUGCAIDXB       → availability CAI-DXB 20Aug
+  A20AUGCAIDXB/EEK   → filter EK only
+  A20AUGCAIDXB*0800  → after 08:00
+  AN20AUGCAIDXB      → neutral
+  A*                 → next page
+
+=== SELL SEGMENT ===
+[SABRE]
+  01Y2   → sell 1 economy seat from line 2
+  02C1   → sell 2 business seats from line 1
+
+[GALILEO]
+  N1Y2   → sell 1 Y class from line 2
+  N2C1   → sell 2 C class from line 1
+
+=== PASSENGER NAMES ===
+[SABRE]
+  -HASSAN/AHMEDMR       → adult male
+  -MAHMOUD/SARARMS      → adult female
+  -ALI/SARAMISS*C08     → child age 8
+  -HASSAN/BABYMSTR*INF  → infant no seat
+
+[GALILEO]
+  N.HASSAN/AHMEDMR      → adult male
+  N.MAHMOUD/SARARMS     → adult female
+  N.ALI/SARAMISS-C08    → child age 8
+  NI.HASSAN/BABYMSTR    → infant
+
+NOTE: LASTNAME first then FIRSTNAME. No spaces. Child age = age at travel date.
+
+=== CONTACT / PHONE / EMAIL ===
+[SABRE]
+  9-WEGO TRAVEL/A     → agency name MANDATORY
+  9M+201234567890     → mobile
+  9H+20223456789      → home
+  CTCE/A@EMAIL.COM    → email MANDATORY for e-ticket
+
+[GALILEO]
+  P.0/WEGO TRAVEL/A   → agency contact MANDATORY
+  P.3/+201234567890   → mobile
+  P.1/+20223456789    → home
+  P.5/A@EMAIL.COM     → email MANDATORY
+
+=== TICKETING TIME LIMIT ===
+[SABRE]
+  7TAW/          → ticket immediately
+  7TAW20AUG/     → ticket by 20Aug
+  7TAW20AUG1800/ → by date and time
+  7T*            → display TTL
+
+[GALILEO]
+  T.TAU/         → ticket immediately
+  T.TAW20AUG/    → ticket by 20Aug
+  T.*            → display TTL
+
+=== END TRANSACTION ===
+[SABRE]
+  ER  → End and Retrieve ALWAYS USE THIS
+  ET  → End only
+  IG  → Ignore cancel all changes
+  IR  → Ignore and Retrieve
+
+[GALILEO]
+  ER  → End and Retrieve
+  ET  → End only
+  I   → Ignore changes
+  IR  → Ignore and Retrieve
+
+=== RETRIEVE PNR ===
+[SABRE]
+  *ABCDEF         → by locator
+  *-HASSAN        → by last name
+  *-HASSAN/AHMED  → by name
+  *EK501/20AUG    → by flight
+
+[GALILEO]
+  RTABCDEF        → by locator
+  RT-HASSAN       → by last name
+  RTEK501/20AUG   → by flight
+  RT*             → last used
+
+=== PRICING ===
+[SABRE]
+  WPNI    → price all passengers best fare
+  WP*     → STORE fare do this before issuing ticket
+  WPRQ    → display stored quote
+  RDRD    → show fare rules
+
+[GALILEO]
+  FQP/R,P → full pricing
+  FQS     → STORE fare mandatory before TTP
+  FQR     → fare rules
+  FQRD    → detailed rules
+
+NOTE: Always store fare WP* in Sabre or FQS in Galileo BEFORE issuing ticket.
+
+=== ISSUE TICKET ===
+[SABRE]
+  W/EB     → issue e-ticket ALL passengers
+  W/EB¥P1  → passenger 1 only
+  *E*      → display e-ticket record
+
+[GALILEO]
+  TTP/     → issue e-ticket ALL passengers
+  TTP/P1   → passenger 1 only
+  TTP/P1-P2 → passengers 1 and 2
+  TTK      → display ticket record
+
+=== VOID TICKET ===
+[SABRE]
+  TRDC[13-digit ticket number]
+  NOTE: SAME DAY ONLY before BSP cut-off usually 23:59 local time
+
+[GALILEO]
+  TRDC[ticket number]
+  NOTE: SAME DAY ONLY before BSP cut-off
+
+=== REFUND ===
+[SABRE]
+  WETR[ticket number]  → electronic refund
+  NOTE: Check airline rules first. Most go via BSP Link.
+
+[GALILEO]
+  TRF[ticket number]/REF → initiate refund
+
+=== REISSUE EXCHANGE ===
+[SABRE] Voluntary:
+  WPNI¥T[old ticket]  → price with original ticket
+  W/EB                → issue new ticket
+  5EXCHANGED FROM TKT [number] → add remark
+
+[GALILEO] Voluntary:
+  FQP/R,P¥T[old ticket] → price with original
+  TTP/EX[old ticket]    → exchange
+
+Involuntary Schedule Change:
+[SABRE]  WPNI¥INVOL and 5INVOL REISSUE SCHED CHANGE BY AIRLINE
+[GALILEO] FQP/R,P¥INVOL and RM*INVOL REISSUE SCHED CHANGE
+
+=== CANCEL SEGMENT ===
+[SABRE]
+  X1   → segment 1    X1-2 → segments 1 to 2
+  XA   → all segments XI   → entire itinerary
+
+[GALILEO]
+  X1   → segment 1    X1-2 → segments 1 to 2
+  XI   → all
+
+=== SSR SPECIAL SERVICES ===
+WHEELCHAIR: WCHR=walks short WCHC=cannot walk WCHS=no stairs
+[SABRE]   3WCHR/EK1  3WCHC/EK1  3WCHS/EK1  3UMNR/EK1  3BLND/EK1  3DEAF/EK1
+[GALILEO] SI.EK*WCHR/P1  SI.EK*WCHC/P1  SI.EK*WCHS/P1  SI.EK*UMNR/P1
+
+MEALS Sabre 3XXXX/EK1 / Galileo SI.EK*XXXX/P1:
+MOML=Muslim VGML=Vegetarian KSML=Kosher CHML=Child DBML=Diabetic
+SFML=Seafood GFML=Gluten-free HNML=Hindu BBML=Baby AVML=Asian Veg
+
+=== DOCS PASSPORT ===
+[SABRE]
+  3DOCS/EK HK1/P/EGY/A12345678/EGY/15JAN85/M/15JAN30/HASSAN/AHMED
+  Fields: P=Passport / Nationality / DocNum / IssueCountry / DOB / Gender / Expiry / Surname / Firstname
+
+[GALILEO]
+  SI.EK*DOCS/P-EGY/PA12345678/EGY-15JAN85-M-15JAN30-HASSAN/AHMED
+
+DOCA destination address:
+[SABRE]   3DOCA/EK1/R/UAE/DUBAI/HILTON HOTEL SHEIKH ZAYED RD
+[GALILEO] SI.EK*DOCA/R-UAE-DUBAI-HILTON HOTEL/P1
+
+DOCO visa:
+[SABRE]   3DOCO/EK1/V/UAEVISA/V123456/UAE/01JAN27
+[GALILEO] SI.EK*DOCO/V-UAE-V123456-01JAN27/P1
+
+=== OSI ===
+[SABRE]   3OSIEK PASSENGER IS VIP   3OSIYR CTCM +201234567890
+[GALILEO] SI.EK*PASSENGER IS VIP    SI.YY*CTCM +201234567890
+
+=== SEAT REQUEST ===
+[SABRE]   4G1/22A → seat 22A   4G1/W → window   4G1/A → aisle
+[GALILEO] ST/1/22A → seat 22A  ST/1/W → window   ST/1/A → aisle
+
+=== FREQUENT FLYER ===
+[SABRE]   FFTV-EK123456789/P1
+[GALILEO] SI.EK*FQTV-EK123456789/P1
+
+=== REMARKS ===
+[SABRE]   5REMARK TEXT → visible   5*CONFIDENTIAL → hidden
+[GALILEO] RM*REMARK TEXT → visible RMZ*CONFIDENTIAL → hidden
+
+=== QUEUES ===
+[SABRE]   Q7 → open queue 7   QR → remove   QS7/*PNR → place on Q7   QMDN → next
+[GALILEO] QD7 → open queue 7  QN → next      QX → exit   QP7/PNR → place on Q7
+
+=== DIVIDE PNR ===
+[SABRE]   SP2 → split pax 2   SP2-3 → split pax 2 and 3
+[GALILEO] DEP/P2 → divide pax 2   DEP/P2-P3 → multiple
+
+=== ENCODE DECODE ===
+[SABRE]   W/-CAI → decode   W/¥CAIRO → encode   DNMS → decode airline MS
+[GALILEO] HE*/CAI → decode  HE*EK → decode airline EK
+
+=== EMD ===
+[SABRE]   WEMD[coupon] → display   WEMDI[code] → issue   WEMDV[coupon] → void
+[GALILEO] TEMD/[coupon] → display  TEMDI/[code] → issue
+
+=== SEGMENT STATUS ===
+HK=Confirmed HL=Waitlisted NN=Pending SA=Space Available
+UN=Unable TK=Time Confirmed KK=Carrier Confirmed HX=Cancelled
+
+=== FULL PNR WORKFLOW ===
+SABRE step by step:
+1. 1A20AUGCAIDXB   → search availability
+2. 01Y1            → sell economy segment
+3. -HASSAN/AHMEDMR → add passenger name
+4. 9-WEGO TRAVEL/A → add agency contact
+5. 9M+201234567890 → add mobile
+6. CTCE/A@MAIL.COM → add email
+7. 7TAW20AUG/      → set time limit
+8. ER              → end and retrieve PNR
+9. WPNI            → price itinerary
+10. WP*            → store fare
+11. W/EB           → issue e-ticket
+
+GALILEO step by step:
+1. A20AUGCAIDXB    → search availability
+2. N1Y1            → sell economy segment
+3. N.HASSAN/AHMEDMR → add passenger name
+4. P.0/WEGO TRAVEL/A → add agency contact
+5. P.3/+201234567890 → add mobile
+6. P.5/A@MAIL.COM    → add email
+7. T.TAW20AUG/       → set time limit
+8. ER                → end and retrieve PNR
+9. FQP/R,P           → price itinerary
+10. FQS              → store fare
+11. TTP/             → issue e-ticket
+
+KEY RULES:
+- Always add agency contact BEFORE ending transaction
+- Email is MANDATORY for e-ticket issuance
+- Always store fare before issuing ticket
+- Use ER not ET to get PNR back immediately
+- DOCS required for most international flights
+- Void only same day before BSP cut-off
+
+Wego Travel Agency, Cairo, Egypt.
+Common routes: CAI-DXB CAI-LHR CAI-JFK CAI-IST CAI-BEY CAI-AMM CAI-RUH CAI-KWI CAI-CDG
+Airlines: EK=Emirates MS=EgyptAir TK=Turkish EY=Etihad QR=Qatar SV=Saudia GF=Gulf Air LH=Lufthansa`;
+
+let history=[], isLoading=false, isLoggedIn=false, pendingFiles=[];
+
+function loadEntries(){try{return JSON.parse(localStorage.getItem('wegio_kb')||'[]');}catch(e){return[];}}
+function saveEntries(a){try{localStorage.setItem('wegio_kb',JSON.stringify(a));}catch(e){}}
+function loadDocs(){try{return JSON.parse(localStorage.getItem('wegio_docs')||'[]');}catch(e){return[];}}
+function saveDocs(a){try{localStorage.setItem('wegio_docs',JSON.stringify(a));}catch(e){}}
+
+function getSystemPrompt(){
+  const entries=loadEntries();
+  if(!entries.length)return BASE;
+  let extra='\n\n================================================================\n';
+  extra+='WEGO CUSTOM KNOWLEDGE — YOU MUST USE THIS IN EVERY ANSWER\n';
+  extra+='================================================================\n';
+  extra+='This was added by the Wego admin. Treat it as highest priority.\n\n';
+  entries.forEach((e,i)=>{
+    extra+=`--- [${i+1}] ${e.category}: "${e.title}" ---\n`;
+    extra+=e.content.trim().substring(0,10000)+'\n\n';
+  });
+  extra+='================================================================\n';
+  return BASE+extra;
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function now(){return new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
+function fileIcon(n){const e=n.split('.').pop().toLowerCase();if(e==='pdf')return'📄';if(['xlsx','xls'].includes(e))return'📊';if(e==='csv')return'📋';if(['docx','doc'].includes(e))return'📝';return'📃';}
+
+function updateBanner(){
+  const n=loadEntries().length;
+  const b=document.getElementById('kbanner');
+  if(n>0){b.classList.add('show');document.getElementById('kbannerTxt').textContent=`🧠 ${n} knowledge item${n>1?'s':''} loaded — Wegio uses them in every answer`;}
+  else b.classList.remove('show');
+}
+function refreshCount(){document.getElementById('entryCount').textContent=loadEntries().length;}
+
+function notifyUpdated(){
+  updateBanner();refreshCount();
+  if(history.length>0){
+    history.push({role:'user',content:'[SYSTEM] New knowledge added. Use it now.'});
+    history.push({role:'assistant',content:'Understood. I have loaded the new knowledge and will use it immediately.'});
+  }
+}
+
+function showToast(id,msg,ok=true){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.className='toast '+(ok?'ok':'er')+' show';
+  setTimeout(()=>el.classList.remove('show'),4000);
+}
+
+function openLearnMode(){document.getElementById('overlay').classList.add('active');if(!isLoggedIn){document.getElementById('adminLogin').style.display='block';document.getElementById('adminPanel').style.display='none';setTimeout(()=>document.getElementById('pwInput').focus(),120);}else showPanel();}
+function closeLearnMode(){document.getElementById('overlay').classList.remove('active');}
+function doLogin(){
+  if(document.getElementById('pwInput').value===PW){
+    isLoggedIn=true;document.getElementById('loginErr').style.display='none';document.getElementById('pwInput').value='';showPanel();
+  }else{document.getElementById('loginErr').style.display='block';document.getElementById('pwInput').value='';document.getElementById('pwInput').focus();}
+}
+function showPanel(){document.getElementById('adminLogin').style.display='none';document.getElementById('adminPanel').style.display='flex';refreshCount();}
+function switchTab(tab,btn){
+  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('tabLearn').style.display=tab==='learn'?'block':'none';
+  document.getElementById('tabUpload').style.display=tab==='upload'?'block':'none';
+  document.getElementById('tabSaved').style.display=tab==='saved'?'block':'none';
+  if(tab==='saved')renderEntries();if(tab==='upload')renderDocs();
+}
+
+function quickTeach(){
+  const text=document.getElementById('quickInput').value.trim();
+  if(!text){showToast('qtToast','Please write something to teach Wegio.',false);return;}
+  const entries=loadEntries();
+  entries.push({id:Date.now(),category:'Quick Teach',title:text.substring(0,60)+(text.length>60?'…':''),content:text,date:now()});
+  saveEntries(entries);document.getElementById('quickInput').value='';
+  notifyUpdated();showToast('qtToast','✅ Taught! Wegio is using this now in all answers.');
+}
+
+function saveEntry(){
+  const cat=document.getElementById('dataCategory').value;
+  const title=document.getElementById('dataTitle').value.trim();
+  const content=document.getElementById('dataContent').value.trim();
+  if(!title||!content){showToast('saveToast','Please fill in both Title and Knowledge fields.',false);return;}
+  const entries=loadEntries();
+  entries.push({id:Date.now(),category:cat,title,content,date:now()});
+  saveEntries(entries);document.getElementById('dataTitle').value='';document.getElementById('dataContent').value='';
+  notifyUpdated();showToast('saveToast','✅ Saved! Wegio will use this in all answers.');
+}
+
+function initDropzone(){
+  const dz=document.getElementById('dropzone');const inp=document.getElementById('fileInput');
+  dz.addEventListener('click',()=>inp.click());
+  inp.addEventListener('change',()=>{stageFiles([...inp.files]);inp.value='';});
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');stageFiles([...e.dataTransfer.files]);});
+}
+
+function stageFiles(files){
+  const allowed=['pdf','docx','doc','xlsx','xls','csv','txt'];
+  files.forEach(f=>{
+    const ext=f.name.split('.').pop().toLowerCase();
+    if(!allowed.includes(ext)){alert(`.${ext} files are not supported. Use PDF, DOCX, XLSX, CSV or TXT.`);return;}
+    if(!pendingFiles.find(p=>p.name===f.name))pendingFiles.push(f);
+  });
+  renderFileList();
+}
+
+function renderFileList(){
+  const list=document.getElementById('fileList');const wrap=document.getElementById('procWrap');
+  if(!pendingFiles.length){list.innerHTML='';wrap.style.display='none';return;}
+  wrap.style.display='block';
+  list.innerHTML=pendingFiles.map((f,i)=>`
+    <div class="fitem" id="fi-${i}">
+      <div class="fitem-ico">${fileIcon(f.name)}</div>
+      <div class="fitem-info">
+        <div class="fitem-name">${esc(f.name)}</div>
+        <div class="fitem-size">${fmtSize(f.size)}</div>
+        <div class="pbar"><div class="pfill" id="pf-${i}"></div></div>
+      </div>
+      <span class="fst" id="fs-${i}">Pending</span>
+      <button class="fitem-rm" data-i="${i}">✕</button>
+    </div>`).join('');
+  list.querySelectorAll('.fitem-rm').forEach(b=>b.addEventListener('click',()=>{pendingFiles.splice(+b.dataset.i,1);renderFileList();}));
+}
+
+async function extractText(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(['txt','csv'].includes(ext))return await file.text();
+  if(['xlsx','xls'].includes(ext)){
+    if(typeof XLSX==='undefined')throw new Error('SheetJS not loaded');
+    const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});
+    let out='';
+    wb.SheetNames.forEach(sn=>{
+      const ws=wb.Sheets[sn];const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      out+=`\n=== Sheet: ${sn} ===\n`;
+      rows.forEach(row=>{const line=row.map(c=>String(c).trim()).filter(c=>c).join('\t');if(line)out+=line+'\n';});
+    });
+    if(!out.trim())throw new Error('No data found in Excel file');
+    return out.trim();
+  }
+  if(['docx','doc'].includes(ext)){
+    if(typeof mammoth==='undefined')throw new Error('Mammoth not loaded');
+    const buf=await file.arrayBuffer();const r=await mammoth.extractRawText({arrayBuffer:buf});
+    if(!r.value.trim())throw new Error('No text found in Word document');
+    return r.value;
+  }
+  if(ext==='pdf'){
+    const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+    const resp=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},{type:'text',text:'Extract ALL text from this PDF. Include every command, table, row, column, and note. Output as plain structured text.'}]}]})});
+    const d=await resp.json();
+    if(d.content?.[0]?.text)return d.content[0].text;
+    throw new Error('PDF extraction failed: '+(d.error?.message||JSON.stringify(d).substring(0,200)));
+  }
+  throw new Error('Unsupported: '+ext);
+}
+
+async function processFiles(){
+  if(!pendingFiles.length)return;
+  const btn=document.getElementById('processFilesBtn');
+  btn.disabled=true;btn.textContent='⏳ Processing files…';
+  let ok=0,fail=0;
+  for(let i=0;i<pendingFiles.length;i++){
+    const f=pendingFiles[i];
+    const fs=document.getElementById(`fs-${i}`);const pf=document.getElementById(`pf-${i}`);
+    fs.textContent='Reading…';fs.className='fst proc';pf.style.width='40%';
+    try{
+      const text=await extractText(f);pf.style.width='80%';
+      const entries=loadEntries();
+      entries.push({id:Date.now()+i,category:'Uploaded Document',title:f.name,content:`[From: ${f.name} — ${fmtSize(f.size)}]\n\n${text.trim()}`,date:now()});
+      saveEntries(entries);
+      const docs=loadDocs();docs.push({name:f.name,size:fmtSize(f.size),chars:text.length,date:now()});saveDocs(docs);
+      pf.style.width='100%';fs.textContent='✓ Done';fs.className='fst done';ok++;
+    }catch(e){
+      pf.style.width='100%';pf.style.background='var(--red)';fs.textContent='✗ Failed';fs.className='fst err';fail++;
+      console.error(f.name,e.message);
+    }
+  }
+  notifyUpdated();
+  if(ok>0)showToast('uploadToast',`✅ ${ok} file${ok>1?'s':''} extracted and saved to Wegio's brain!${fail>0?` (${fail} failed)`:''}`,true);
+  else showToast('uploadToast',`❌ All files failed. Check format and try again.`,false);
+  btn.textContent=`✅ Done — ${ok} saved${fail>0?`, ${fail} failed`:''}`;
+  setTimeout(()=>{pendingFiles=[];renderFileList();renderDocs();btn.disabled=false;btn.textContent='🧠 Extract and Save to Wegio\'s Brain';},3000);
+}
+
+function renderDocs(){
+  const docs=loadDocs();const el=document.getElementById('uploadedDocs');
+  if(!docs.length){el.innerHTML='';return;}
+  el.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--mut);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">PREVIOUSLY UPLOADED (${docs.length})</div>`+
+    docs.slice().reverse().map((d,i)=>`
+    <div class="fitem" style="margin-bottom:8px">
+      <div class="fitem-ico">${fileIcon(d.name)}</div>
+      <div class="fitem-info"><div class="fitem-name">${esc(d.name)}</div><div class="fitem-size">${d.size} · ~${(d.chars/1000).toFixed(1)}k chars · ${d.date}</div></div>
+      <button class="fitem-rm" data-di="${i}">🗑</button>
+    </div>`).join('');
+  el.querySelectorAll('[data-di]').forEach(b=>b.addEventListener('click',()=>{
+    const docs2=loadDocs().slice().reverse();const name=docs2[+b.dataset.di]?.name;
+    saveDocs(loadDocs().filter(d=>d.name!==name));saveEntries(loadEntries().filter(e=>e.title!==name));
+    notifyUpdated();renderDocs();
+  }));
+}
+
+function renderEntries(){
+  const entries=loadEntries();const list=document.getElementById('entriesList');const stats=document.getElementById('statsBar');
+  const cats={};entries.forEach(e=>{cats[e.category]=(cats[e.category]||0)+1;});
+  stats.innerHTML=`<div class="spill">Total: <span>${entries.length}</span></div>`+Object.entries(cats).map(([k,v])=>`<div class="spill">${esc(k)}: <span>${v}</span></div>`).join('');
+  if(!entries.length){list.innerHTML='<div class="empty"><div class="empty-i">📭</div><p>Nothing yet. Use <strong>Teach Wegio</strong> or <strong>Upload Files</strong> to add knowledge.</p></div>';return;}
+  list.innerHTML=entries.slice().reverse().map(e=>`
+    <div class="ecard">
+      <div class="etop"><div class="etitle">${esc(e.title)}</div><div class="ecat">${esc(e.category)}</div></div>
+      <div class="eprev">${esc(e.content.substring(0,130))}${e.content.length>130?'…':''}</div>
+      <div class="efoot"><div class="edate">${e.date}</div><button class="edel" data-id="${e.id}">🗑 Remove</button></div>
+    </div>`).join('');
+}
+
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px';}
+
+function addMsg(role,html){
+  const msgs=document.getElementById('messages');
+  const d=document.createElement('div');d.className='msg '+role;
+  const av=document.createElement('div');av.className='av '+(role==='user'?'av-u':'av-ai');av.textContent=role==='user'?'👤':'W';
+  const b=document.createElement('div');b.className='bubble '+(role==='user'?'bu':'bai');
+  b.innerHTML=html;
+  b.querySelectorAll('.cb').forEach(block=>{
+    const btn=document.createElement('button');btn.className='cpbtn';btn.textContent='Copy';
+    btn.addEventListener('click',()=>{
+      const cl=block.cloneNode(true);cl.querySelectorAll('button').forEach(x=>x.remove());
+      navigator.clipboard.writeText(cl.innerText.trim()).then(()=>{btn.textContent='✓';setTimeout(()=>btn.textContent='Copy',1600);}).catch(()=>{btn.textContent='Err';setTimeout(()=>btn.textContent='Copy',1600);});
+    });
+    block.appendChild(btn);
+  });
+  d.appendChild(av);d.appendChild(b);msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showTyping(){
+  const msgs=document.getElementById('messages');
+  const d=document.createElement('div');d.className='msg ai';d.id='typing';
+  const av=document.createElement('div');av.className='av av-ai';av.textContent='W';
+  const b=document.createElement('div');b.className='bubble bai';
+  b.innerHTML='<div class="tind"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  d.appendChild(av);d.appendChild(b);msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+
+function fmtReply(txt){
+  let h=txt;
+  h=h.replace(/\[SABRE\]([\s\S]*?)(?=\[GALILEO\]|\n{2,}|$)/g,(m,c)=>{
+    const lines=c.trim().split('\n').map(l=>l.replace(/→\s*(.+)$/,'→ <span class="cmtc">$1</span>')).join('\n');
+    return `<div class="cb sabre"><div class="cbl">● Sabre Red 360</div>${lines}</div>`;
+  });
+  h=h.replace(/\[GALILEO\]([\s\S]*?)(?=\[SABRE\]|\n{2,}|$)/g,(m,c)=>{
+    const lines=c.trim().split('\n').map(l=>l.replace(/→\s*(.+)$/,'→ <span class="cmtc">$1</span>')).join('\n');
+    return `<div class="cb gal"><div class="cbl">● Galileo Travelport</div>${lines}</div>`;
+  });
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/NOTE:\s*([^\n]+)/g,'<div class="noteb">$1</div>');
+  h=h.replace(/^#{1,3}\s+(.+)$/gm,'<div class="shdr">$1</div>');
+  h=h.split(/\n{2,}/).map(p=>{if(/^<(div|ul|ol|h)/.test(p.trim()))return p;return`<p style="margin-bottom:9px;line-height:1.65">${p.replace(/\n/g,'<br>')}</p>`;}).join('');
+  return h;
+}
+
+async function sendMessage(){
+  if(isLoading)return;
+  const inp=document.getElementById('userInput');const txt=inp.value.trim();if(!txt)return;
+  inp.value='';inp.style.height='auto';document.getElementById('sendBtn').disabled=true;isLoading=true;
+  addMsg('user',`<p>${esc(txt)}</p>`);history.push({role:'user',content:txt});showTyping();
+  try{
+    const entries=loadEntries();let messages=[...history];
+    if(entries.length&&messages.length===1){
+      const kl=entries.map((e,i)=>`[${i+1}] ${e.category} — "${e.title}":\n${e.content.substring(0,2000)}`).join('\n\n---\n\n');
+      messages=[{role:'user',content:`Load this custom knowledge and confirm:\n\n${kl}`},{role:'assistant',content:`Confirmed. I have loaded all ${entries.length} knowledge item${entries.length>1?'s':''} and will use them in every answer.`},...messages];
+    }
+    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:getSystemPrompt(),messages})});
+    const data=await res.json();removeTyping();
+    let reply='';
+    if(data.content?.[0]?.text)reply=data.content[0].text;
+    else if(data.error)reply=`⚠ Error: ${data.error.message||JSON.stringify(data.error)}`;
+    else reply='⚠ No response. Check API key in Vercel settings. Raw: '+JSON.stringify(data).substring(0,300);
+    history.push({role:'assistant',content:reply});addMsg('ai',fmtReply(reply));
+  }catch(err){
+    removeTyping();addMsg('ai',`<p style="color:var(--red)">⚠ Connection error: ${esc(err.message)}<br>Make sure ANTHROPIC_API_KEY is set in Vercel Environment Variables, then redeploy.</p>`);
+  }
+  isLoading=false;document.getElementById('sendBtn').disabled=false;
+}
+
+function init(){
+  document.getElementById('learnBtn').addEventListener('click',openLearnMode);
+  document.getElementById('mcloseBtn').addEventListener('click',closeLearnMode);
+  document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeLearnMode();});
+  document.getElementById('loginBtn').addEventListener('click',doLogin);
+  document.getElementById('pwInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.querySelectorAll('.qb[data-q]').forEach(b=>b.addEventListener('click',()=>{const inp=document.getElementById('userInput');inp.value=b.dataset.q;autoResize(inp);sendMessage();}));
+  document.querySelectorAll('.chip[data-q]').forEach(b=>b.addEventListener('click',()=>{const inp=document.getElementById('userInput');inp.value=b.dataset.q;autoResize(inp);sendMessage();}));
+  document.getElementById('sendBtn').addEventListener('click',sendMessage);
+  document.getElementById('userInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+  document.getElementById('userInput').addEventListener('input',function(){autoResize(this);});
+  document.querySelectorAll('.atab[data-tab]').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab,b)));
+  document.querySelector('.modal').addEventListener('click',function(e){
+    if(e.target.closest('#quickTeachBtn')){quickTeach();return;}
+    if(e.target.closest('#saveEntryBtn')){saveEntry();return;}
+    if(e.target.closest('#processFilesBtn')){processFiles();return;}
+  });
+  document.getElementById('entriesList').addEventListener('click',function(e){
+    const btn=e.target.closest('.edel');if(!btn)return;
+    const id=parseInt(btn.dataset.id);if(!confirm('Remove this from Wegio\'s knowledge?'))return;
+    saveEntries(loadEntries().filter(en=>en.id!==id));notifyUpdated();renderEntries();
+  });
+  initDropzone();updateBanner();refreshCount();
+}
+init();
+</script>
+</body>
+</html>
