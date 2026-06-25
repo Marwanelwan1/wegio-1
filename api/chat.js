@@ -4,7 +4,6 @@ module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (req.method !== 'POST') { res.status(405).end(); return; }
 
@@ -17,9 +16,7 @@ module.exports = function handler(req, res) {
   const body = JSON.stringify(req.body);
   const options = {
     hostname: 'api.anthropic.com',
-    port: 443,
-    path: '/v1/messages',
-    method: 'POST',
+    port: 443, path: '/v1/messages', method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
@@ -36,7 +33,6 @@ module.exports = function handler(req, res) {
       catch(e) { res.status(500).json({ error: { message: d.substring(0, 300) } }); }
     });
   });
-
   pr.on('error', e => res.status(500).json({ error: { message: e.message } }));
   pr.write(body);
   pr.end();
